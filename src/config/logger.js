@@ -1,16 +1,19 @@
 const pino = require('pino');
 const config = require('./environment');
 
-const logger = pino({
+const options = {
   level: config.LOG_LEVEL,
-  transport: config.NODE_ENV === 'development' ? {
-    target: 'pino-pretty',
-    options: {
-      colorize: true,
-      ignore: 'pid,hostname',
-      translateTime: 'SYS:yyyy-mm-dd HH:MM:ss',
-    },
-  } : undefined,
-});
+  redact: {
+    paths: ['req.headers.authorization', 'password', 'passwordHash', 'refreshToken', 'otp', '*.password', '*.refreshToken', '*.otp'],
+    censor: '[REDACTED]',
+  },
+};
 
-module.exports = logger;
+if (config.NODE_ENV === 'development') {
+  options.transport = {
+    target: 'pino-pretty',
+    options: { colorize: true, ignore: 'pid,hostname', translateTime: 'SYS:yyyy-mm-dd HH:MM:ss' },
+  };
+}
+
+module.exports = pino(options);

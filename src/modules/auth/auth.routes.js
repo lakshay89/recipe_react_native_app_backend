@@ -1,0 +1,20 @@
+const express = require('express');
+const controller = require('./auth.controller');
+const validation = require('./auth.validation');
+const validate = require('../../middlewares/validate');
+const authenticate = require('../../middlewares/authenticate');
+const { loginLimiter, otpLimiter, passwordResetLimiter } = require('../../middlewares/rateLimiter');
+
+const router = express.Router();
+router.post('/register', loginLimiter, validate(validation.register), controller.register);
+router.post('/verify-email', otpLimiter, validate(validation.verifyEmail), controller.verifyEmail);
+router.post('/resend-verification', otpLimiter, validate(validation.resendVerification), controller.resendVerification);
+router.post('/login', loginLimiter, validate(validation.login), controller.login);
+router.post('/refresh', loginLimiter, validate(validation.refresh), controller.refresh);
+router.post('/logout', validate(validation.logout), controller.logout);
+router.post('/forgot-password', passwordResetLimiter, validate(validation.forgotPassword), controller.forgotPassword);
+router.post('/verify-reset-otp', passwordResetLimiter, validate(validation.verifyResetOtp), controller.verifyResetOtp);
+router.post('/reset-password', passwordResetLimiter, validate(validation.resetPassword), controller.resetPassword);
+router.get('/sessions', authenticate, controller.sessions);
+router.delete('/sessions/:sessionId', authenticate, validate(validation.sessionId), controller.revokeSession);
+module.exports = router;
